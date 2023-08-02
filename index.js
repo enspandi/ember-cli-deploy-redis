@@ -164,12 +164,17 @@ module.exports = {
       async fetchRevisions(/* context */) {
         let redisDeployClient = this.readConfig('redisDeployClient');
         let keyPrefix = this.readConfig('keyPrefix');
+        let contextKey = this.readConfig('contextKey');
         this.log(`Fetching revisions for key: \`${keyPrefix}\``, { verbose: true });
         try {
-          let revisions = await redisDeployClient.fetchRevisions(keyPrefix);
-          return {
-            revisions
-          };
+          const revisions = await redisDeployClient.fetchRevisions(keyPrefix);
+          const context = { revisions };
+
+          if (contextKey && typeof contextKey === 'string') {
+            context[contextKey] = revisions;
+          }
+
+          return context;
         } catch(e) {
           this._logErrorMessage(e);
           throw e;
